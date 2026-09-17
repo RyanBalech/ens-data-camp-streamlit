@@ -5,6 +5,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+from streamlit.components.v1 import declare_component
 
 from hec.tools.data_utils import filter_dataset, load_dataset
 
@@ -40,9 +41,8 @@ with st.sidebar:
         st.caption("Six synthetic observations for a quick walkthrough. These are illustrative, not research results.")
     st.divider()
 
-st.markdown('<div class="eyebrow">RESEARCH WORKSPACE / 01</div>', unsafe_allow_html=True)
-st.title("Inside the allocation signal.")
-st.markdown('<div class="intro">Explore return direction, allocation groups and the historical signals behind the ENS Data Camp project.</div>', unsafe_allow_html=True)
+motion_header = declare_component("allocation_motion_header", path=str(ROOT / "assets/motion"))
+motion_header(key="research_header", default=None)
 
 if source == "Upload my data" and (features is None or targets is None):
     st.info("Add both X_train and y_train in the sidebar to open your research workspace.")

@@ -40,3 +40,12 @@ button:focus-visible, input:focus-visible { outline: 3px solid #bbaaff !importan
 [data-testid="stCaptionContainer"] p { color: #b5bdd1 !important; }
 @media (max-width:768px) { .block-container { padding: 2rem 1rem; } .dataset-strip { gap: .6rem; border-radius: 18px; } [data-baseweb="tab-list"] { gap: .2rem; } [data-baseweb="tab"] { padding: .5rem .7rem; } }
 @media (prefers-reduced-motion:reduce) { * { transition: none !important; animation: none !important; } }
+@keyframes panel-reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion:no-preference) {
+  [data-testid="stMetric"] { animation: panel-reveal 450ms cubic-bezier(.22,1,.36,1) both; }
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) [data-testid="stMetric"] { animation-delay: 50ms; }
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(3) [data-testid="stMetric"] { animation-delay: 100ms; }
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(4) [data-testid="stMetric"] { animation-delay: 150ms; }
+  [role="tabpanel"]:not([hidden]) { animation: panel-reveal 280ms cubic-bezier(.22,1,.36,1) both; }
+}
+[role="tab"] { transition: background-color 180ms ease, color 180ms ease; }

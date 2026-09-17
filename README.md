@@ -75,6 +75,12 @@ GitLab CI uses the same pinned Python base and locked dependencies. It compiles 
 
 ## Project map
 
+### Motion frontend
+
+The research header is a React component animated with Framer Motion, embedded through Streamlit's custom-component API. It uses a stable key so filter reruns do not replay the entrance animation. Native Streamlit cards and tabs use complementary CSS transitions. Both honor the operating system's reduced-motion preference.
+
+The compiled JavaScript and third-party license notices are committed under `assets/motion/` and served locally. Docker reviewers do not need Node or a CDN connection. To edit the animation, use Node 24.19.0, run `npm ci --ignore-scripts` and `npm run build` from `frontend/`, then commit the source, lockfile and built assets together. GitLab CI rebuilds and checks the committed bundle for reproducibility.
+
 - `app.py`: Streamlit workspace and aggregated charts.
 - `assets/style.css`, `.streamlit/config.toml`: visual system and server settings.
 - `hec/tools/data_utils.py`: validated import and filtering.

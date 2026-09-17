@@ -7,3 +7,4 @@ coverage.xml
 report.xml
 .venv/
 artifacts/
+node_modules/

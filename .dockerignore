@@ -8,3 +8,5 @@ artifacts/
 .venv/
 coverage.xml
 report.xml
+node_modules/
+**/node_modules/
