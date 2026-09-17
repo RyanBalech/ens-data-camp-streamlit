@@ -1,6 +1,6 @@
-import pandas as pd
-import streamlit as st
 from pathlib import Path
+
+import streamlit as st
 
 from hec.tools.data_utils import filter_dataset, load_dataset
 
@@ -20,22 +20,34 @@ else:
     data = load_dataset(sample_dir / "X_train_sample.csv", sample_dir / "y_train_sample.csv")
     st.info("Showing the included sample dataset. Upload both full training files for the complete analysis.")
 
-    groups = sorted(data["GROUP"].dropna().unique().tolist())
-    selected_group = st.selectbox("Allocation group", ["All"] + groups)
-    selected_label = st.selectbox("Return label", ["All", 0, 1], format_func=lambda x: {"All": "All labels", 0: "Negative or zero", 1: "Positive"}[x])
+groups = sorted(data["GROUP"].dropna().unique().tolist())
+selected_group = st.selectbox("Allocation group", ["All"] + groups)
+selected_label = st.selectbox(
+    "Return label",
+    ["All", 0, 1],
+    format_func=lambda value: {
+        "All": "All labels",
+        0: "Negative or zero",
+        1: "Positive",
+    }[value],
+)
 
-    filtered = filter_dataset(
-        data,
-        group=None if selected_group == "All" else selected_group,
-        label=None if selected_label == "All" else selected_label,
-    )
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Rows", f"{len(filtered):,}")
-    c2.metric("Positive-return share", f"{filtered['label'].mean():.1%}" if len(filtered) else "—")
-    c3.metric("Mean target", f"{filtered['target'].mean():.4f}" if len(filtered) else "—")
-    st.subheader("Target distribution")
-    st.bar_chart(filtered["label"].value_counts().sort_index())
-    st.subheader("Sample")
-    st.dataframe(filtered.head(100), use_container_width=True)
-else:
-    st.info("Upload both training files to begin. The files are intentionally kept outside Git because they are large.")
+filtered = filter_dataset(
+    data,
+    group=None if selected_group == "All" else selected_group,
+    label=None if selected_label == "All" else selected_label,
+)
+c1, c2, c3 = st.columns(3)
+c1.metric("Rows", f"{len(filtered):,}")
+c2.metric(
+    "Positive-return share",
+    f"{filtered['label'].mean():.1%}" if len(filtered) else "—",
+)
+c3.metric(
+    "Mean target",
+    f"{filtered['target'].mean():.4f}" if len(filtered) else "—",
+)
+st.subheader("Target distribution")
+st.bar_chart(filtered["label"].value_counts().sort_index())
+st.subheader("Sample")
+st.dataframe(filtered.head(100), use_container_width=True)
