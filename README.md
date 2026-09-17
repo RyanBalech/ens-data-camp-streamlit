@@ -4,7 +4,7 @@ This project turns the ENS Data Camp financial classification work into a Stream
 
 ## Run locally
 
-Install dependencies with `pip install -r requirements.txt`, then run `streamlit run app.py`. Upload `X_train_9xQjqvZ.csv` and `y_train_Ppwhaz8.csv` in the app. The large CSV files are intentionally excluded from Git.
+Install dependencies with `pip install -r requirements.txt`, then run `streamlit run app.py`. The app opens with a small included sample dataset; upload `X_train_9xQjqvZ.csv` and `y_train_Ppwhaz8.csv` for the complete analysis. The large CSV files are intentionally excluded from Git.
 
 Run tests with `python -m pytest`.
 
