@@ -9,7 +9,7 @@ import streamlit as st
 from hec.tools.data_utils import filter_dataset, load_dataset
 
 ROOT = Path(__file__).parent
-TEAL, NAVY, CLAY = "#087F75", "#142D45", "#B65D44"
+TEAL, NAVY, CLAY = "#7EE8C5", "#B29AFF", "#FFA88E"
 st.set_page_config(page_title="Allocation Lab | ENS Data Camp", layout="wide")
 st.markdown(f"<style>{(ROOT / 'assets/style.css').read_text()}</style>", unsafe_allow_html=True)
 
@@ -20,9 +20,9 @@ def read_data(features, targets):
 
 
 def chart_style(chart):
-    return (chart.configure_view(strokeWidth=0)
-            .configure_axis(labelColor="#526577", titleColor="#526577", gridColor="#E7EBEC", domain=False)
-            .configure_legend(title=None, labelColor="#526577"))
+    return (chart.configure(background="transparent").configure_view(strokeWidth=0)
+            .configure_axis(labelColor="#B5BDD1", titleColor="#B5BDD1", gridColor="#2C334A", domain=False)
+            .configure_legend(title=None, labelColor="#B5BDD1"))
 
 
 with st.sidebar:
