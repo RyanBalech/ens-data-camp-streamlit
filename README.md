@@ -13,3 +13,5 @@ Run tests with `python -m pytest`.
 Build with `docker build -t ens-data-camp .` and run with `docker run --rm -p 8501:8501 ens-data-camp`. Open http://localhost:8501.
 
 The GitLab CI pipeline runs the test suite on every push.
+
+The Streamlit upload limit is configured to 500 MB so the full training CSV can be tested locally.
