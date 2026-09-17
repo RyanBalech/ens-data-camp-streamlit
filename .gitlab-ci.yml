@@ -1,8 +1,16 @@
-image: python:3.10
+image: python:3.10-slim@sha256:fd76ade0c607f27677bc04be3c60749f400eedc941d9e72967e19a4cedff80c2
 
 before_script:
   - pip install -r requirements.txt
 
 test:
   script:
-    - python -m pytest --cov=hec --cov-report=term-missing
+    - python -m compileall -q app.py hec
+    - python -m pytest --cov=hec --cov-report=term-missing --cov-report=xml --junitxml=report.xml --cov-fail-under=95
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml

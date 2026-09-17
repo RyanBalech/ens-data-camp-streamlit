@@ -3,3 +3,8 @@
 .git/
 __pycache__/
 .pytest_cache/
+.coverage
+artifacts/
+.venv/
+coverage.xml
+report.xml
