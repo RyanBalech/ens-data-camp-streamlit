@@ -11,6 +11,18 @@ motion-build:
 before_script:
   - pip install -r requirements.txt
 
+browser:
+  image: mcr.microsoft.com/playwright/python:v1.55.0-noble
+  before_script:
+    - pip install -r requirements.txt -r requirements-browser.txt
+  script:
+    - python -m streamlit run app.py --server.address=0.0.0.0 > /tmp/streamlit.log 2>&1 &
+    - python scripts/check_browser.py
+  artifacts:
+    when: always
+    paths:
+      - artifacts/e2e/
+
 test:
   script:
     - python -m compileall -q app.py hec

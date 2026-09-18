@@ -8,6 +8,8 @@ import streamlit as st
 from streamlit.components.v1 import declare_component
 
 from hec.tools.data_utils import filter_dataset, load_dataset
+from ui.charts import show_chart
+from ui.research_pages import model_lab, feature_explorer
 
 ROOT = Path(__file__).parent
 TEAL, NAVY, CLAY = "#7EE8C5", "#B29AFF", "#FFA88E"
@@ -61,7 +63,8 @@ with st.sidebar:
     groups = sorted(data["GROUP"].unique().tolist(), key=str)
     group = st.selectbox("Allocation group", ["All"] + groups, format_func=lambda v: "All groups" if v == "All" else f"Group {v}", key="group")
     label = st.selectbox("Return direction", ["All", 1, 0], format_func=lambda v: {"All": "All directions", 1: "Positive", 0: "Zero or negative"}[v], key="label")
-    st.caption("Filters apply to every chart and table in the workspace.")
+    st.caption("Filters apply to uploaded-data exploration. Model Lab uses its own fixed validation experiment.")
+    st.slider("Chart height", 250, 700, 350, 50, key="chart_height")
     st.divider()
     st.markdown("**Research question**")
     st.caption("Can 20 days of allocation history help explain the sign of the next day's return?")
@@ -81,19 +84,20 @@ c.metric("MEAN NEXT-DAY RETURN", f"{selected.target.mean() * 10000:+.2f} bp", he
 d.metric("ALLOCATION GROUPS", str(selected.GROUP.nunique()))
 st.caption(f"Viewing {len(selected):,} of {len(data):,} observations · Metrics describe observed outcomes, not predictions.")
 
-overview, signals, records, methods = st.tabs(["Overview", "Historical signals", "Data explorer", "Research & methods"])
+overview, signals, records, research, methods = st.tabs(["Overview", "Historical signals", "Data explorer", "Model Lab", "Research & methods"])
 
 with overview:
     left, right = st.columns([1.6, 1])
     with left, st.container(border=True):
         st.subheader("The shape of tomorrow's return")
         st.caption("Observed next-day returns · all selected rows · basis points")
-        counts, edges = np.histogram(selected.target * 10000, bins=40)
+        bins = st.slider("Histogram bins", 10, 100, 40, 10)
+        counts, edges = np.histogram(selected.target * 10000, bins=bins)
         histogram = pd.DataFrame({"start": edges[:-1], "end": edges[1:], "Observations": counts})
         plot = alt.Chart(histogram).mark_bar(color=TEAL, cornerRadiusTopLeft=2, cornerRadiusTopRight=2).encode(
             x=alt.X("start:Q", title="Next-day return (bp)"), x2="end:Q",
             y=alt.Y("Observations:Q", title="Observations"), y2=alt.Y2(datum=0), tooltip=[alt.Tooltip("start:Q", format=".2f"), alt.Tooltip("end:Q", format=".2f"), "Observations:Q"])
-        st.altair_chart(chart_style(plot.properties(height=275)), width="stretch")
+        show_chart(plot, "Next-day return distribution", "distribution")
     with right, st.container(border=True):
         st.subheader("Direction balance")
         st.caption("Actual outcomes in the selected cohort")
@@ -101,7 +105,7 @@ with overview:
         plot = alt.Chart(balance).mark_bar(cornerRadiusEnd=5, size=40).encode(
             y=alt.Y("Direction:N", title=None, sort=None), x=alt.X("Observations:Q", title="Observations"),
             color=alt.Color("Direction:N", scale=alt.Scale(domain=["Positive", "Zero or negative"], range=[TEAL, CLAY]), legend=None), tooltip=["Direction", "Observations"])
-        st.altair_chart(chart_style(plot.properties(height=190)), width="stretch")
+        show_chart(plot, "Direction balance", "balance")
         st.caption("A balanced target can still be difficult to predict. Class frequency alone is not evidence of predictive skill.")
     with st.container(border=True):
         st.subheader("Where the groups differ")
@@ -110,7 +114,7 @@ with overview:
         grouped["Mean (bp)"] = grouped.Mean * 10000
         plot = alt.Chart(grouped).mark_bar(color=NAVY, cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
             x=alt.X("GROUP:N", title="Allocation group"), y=alt.Y("Mean (bp):Q", title="Mean next-day return (bp)"), tooltip=["GROUP", "Observations", alt.Tooltip("Mean (bp):Q", format=".2f")])
-        st.altair_chart(chart_style(plot.properties(height=220)), width="stretch")
+        show_chart(plot, "Returns by allocation group", "groups")
 
 with signals:
     st.subheader("Read the history behind each observation")
@@ -119,10 +123,15 @@ with signals:
     if lag_columns:
         summary = pd.DataFrame({"Days before target": [-int(col[4:]) for col in lag_columns], "Mean return (bp)": [pd.to_numeric(selected[col], errors="coerce").mean() * 10000 for col in lag_columns]})
         plot = alt.Chart(summary).mark_line(color=TEAL, point=True, strokeWidth=3).encode(x=alt.X("Days before target:Q"), y=alt.Y("Mean return (bp):Q"), tooltip=["Days before target", alt.Tooltip("Mean return (bp):Q", format=".2f")])
-        st.altair_chart(chart_style(plot.properties(height=300)), width="stretch")
+        show_chart(plot, "Historical return averages", "history")
         st.caption(f"Cohort average across {len(lag_columns)} available lags. Missing feature values are excluded from each mean. This is not a portfolio backtest.")
     else:
         st.info("No RET_1 … RET_20 columns found in this feature file.")
+    st.divider()
+    feature_explorer(selected)
+
+with research:
+    model_lab()
 
 with records:
     st.subheader("Inspect the evidence")
@@ -144,7 +153,7 @@ with methods:
     st.markdown("#### 01 / The question")
     st.write("The original task predicts whether the next-day return is positive using 20 return lags, 20 signed-volume lags, turnover and allocation group. A label of 1 means target > 0; 0 includes zero and negative returns.")
     st.markdown("#### 02 / This application")
-    st.write("Upload matching training feature and target CSVs to explore distributions, group differences, historical signals and missingness. The application is an exploratory adaptation: it does not train CatBoost or generate predictions. X_test and submission.csv are not inputs to this labeled-data explorer.")
+    st.write("Upload matching training feature and target CSVs to explore distributions, group differences, historical signals and missingness. Model Lab displays a separately reproduced offline CatBoost experiment with held-out predictions, a threshold explorer and feature importance. Training never runs inside the page. X_test and submission.csv are not inputs to this labeled-data explorer.")
     st.markdown("#### 03 / Original model & limitations")
     st.write("The supplied notebook engineers statistical, momentum and liquidity features and trains CatBoost on a GPU. Its stratified random cross-validation may place observations from the same anonymized date in both partitions. The report also describes grouped validation elsewhere; those descriptions are inconsistent, so the app does not claim to reproduce its reported scores.")
     st.write("Anonymized TS values are identifiers, not calendar dates. These plots show associations and observed outcomes; they do not establish out-of-sample predictive performance.")

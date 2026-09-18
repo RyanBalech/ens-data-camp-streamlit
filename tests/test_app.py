@@ -23,3 +23,14 @@ def test_upload_waits_for_both_files():
     app.radio(key="source").set_value("Upload my data").run()
     assert not app.exception
     assert "Add both" in app.info[0].value
+
+
+def test_chart_controls_and_thresholds_render():
+    app = AppTest.from_file(str(APP), default_timeout=30).run()
+    assert not app.exception
+    app.slider(key="chart_height").set_value(600).run()
+    assert not app.exception
+    app.slider(key="threshold").set_value(100).run()
+    assert not app.exception
+    app.button(key="expand_distribution").click().run()
+    assert not app.exception

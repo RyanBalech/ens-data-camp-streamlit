@@ -22,7 +22,10 @@ The **Demo dataset** opens immediately with six explicitly synthetic observation
 1. Select **Upload my data** in the sidebar.
 2. Upload `X_train_9xQjqvZ.csv` (approximately 272 MB) and `y_train_Ppwhaz8.csv` (approximately 11 MB).
 3. Select an allocation group and return direction. All metrics and charts update.
-4. Explore **Overview**, **Historical signals**, **Data explorer** and **Research & methods**.
+4. Explore **Overview**, **Historical signals**, **Data explorer**, **Model Lab** and **Research & methods**.
+5. Change histogram bins or chart height. Scroll a chart to zoom, drag to pan and double-click to reset. Each figure has an **Expand chart** dialog and a Vega-Lite JSON export.
+6. In Historical signals, inspect a specific observation's 20 return and volume lags and download its engineered features. This requires the full feature schema.
+7. In Model Lab, compare held-out models, adjust the decision threshold, inspect the confusion matrix and read the model card. This fixed offline experiment is independent of sidebar dataset filters.
 
 The original training files are obtained through the ENS Challenge Data / QRT challenge access used for the original project. They are excluded from Git and Docker; redistribution rights are not assumed. The author has these files locally. A reviewer who needs the full data must have access to the original challenge files or obtain them from the author through an allowed course channel.
 
@@ -47,9 +50,9 @@ The original project investigates whether 20-day return and signed-volume histor
 
 Original research collaborators: Omar Karim, Ryan Balech, Hitaishi Dhoowooah, Gabriel Dreik and Korouhanba Khuman Laikhuram. This application's interface, import/filter pipeline, tests and packaging form Ryan's individual adaptation.
 
-**The application is exploratory.** It displays observed outcomes and does not train the original model or generate forecasts. A 50.7% positive-return share is a class balance statistic, not prediction accuracy. Basis points make small returns legible: 1 bp = 0.0001 in decimal return units.
+**The application combines exploration and verified offline evaluation.** It does not train models during page interactions. Model Lab displays a new CPU CatBoost and logistic-regression experiment with 60,000 real observations and three date-grouped folds. It includes held-out threshold metrics and model-derived feature importance. A 50.7% positive-return share in the dataset overview is still a class balance statistic, not prediction accuracy. Basis points make small returns legible: 1 bp = 0.0001 in decimal return units.
 
-The notebook uses stratified random cross-validation. The original report describes both grouped and stratified validation, so its validation descriptions are inconsistent. This app does not assert that those scores have been reproduced. Random splits can share anonymized dates; a future modeling extension should use date-grouped validation and learn preprocessing only from training folds. Cohort plots are descriptive, not a trading backtest.
+The notebook uses stratified random cross-validation. The original report describes both grouped and stratified validation, so its validation descriptions are inconsistent. The new experiment uses date-grouped validation and train-fold preprocessing; its results are explicitly separate from the report. Cohort plots are descriptive, not a trading backtest. See [evaluation evidence and reproduction commands](results/README.md).
 
 ## Local Python setup and tests
 
@@ -71,7 +74,16 @@ Run the exact packaged tests without installing Python locally:
 docker run --rm ens-data-camp python -m pytest --cov=hec --cov-report=term-missing
 ```
 
-GitLab CI uses the same pinned Python base and locked dependencies. It compiles the app, tests import/filter edge cases and Streamlit execution, and publishes JUnit and coverage reports. The utility coverage gate is 95%. UI smoke tests also change filters and exercise the upload waiting state, catching errors that a health endpoint cannot detect.
+For browser-level checks against a running container, install `requirements-browser.txt`,
+run `python -m playwright install chromium`, then run
+`python scripts/check_browser.py`. On Windows with Edge installed, use
+`python scripts/check_browser.py --channel msedge`. Add
+`--data-dir "/absolute/path/to/ENS Data Camp"` to also verify the original
+527,073-row upload and observation explorer. The script exercises explicit chart
+expansion, native fullscreen, resizing, zoom/pan/reset, PNG/JSON/CSV exports,
+threshold endpoints and responsive widths, saving evidence under ignored `artifacts/e2e/`.
+
+GitLab's unit-test job uses the same pinned Python base and locked dependencies as Docker. It compiles the app, tests import/filter and research calculations, checks evaluation-artifact consistency and Streamlit execution, and publishes JUnit and coverage reports. The utility coverage gate is 95%. A separate Playwright browser job verifies figure controls, downloads and Model Lab interactions using the bundled demo and real aggregate evaluation evidence; the full private training files are only exercised locally. A third job checks the reproducibility of the Framer Motion frontend build.
 
 ## Project map
 
@@ -85,6 +97,10 @@ The compiled JavaScript and third-party license notices are committed under `ass
 - `assets/style.css`, `.streamlit/config.toml`: visual system and server settings.
 - `hec/tools/data_utils.py`: validated import and filtering.
 - `tests/`: data contracts, filtering and Streamlit execution tests.
+- `hec/tools/research.py`: tested row-local feature engineering and threshold metrics.
+- `ui/`: chart expansion/export and research pages.
+- `scripts/evaluate.py`, `requirements-model.lock`: separately reproducible offline CPU experiment.
+- `results/evaluation.json`: verified aggregate validation evidence and input hashes.
 - `sample_data/`: six-row synthetic demonstration pair.
 - `ensdata_original.ipynb`: historical project reference; has original local paths and GPU assumptions, and is not required to run the app.
 - `Dockerfile`, `requirements.lock`, `.gitlab-ci.yml`: reproducible packaging and automated verification.
