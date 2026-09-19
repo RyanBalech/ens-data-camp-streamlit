@@ -11,6 +11,7 @@ from hec.tools.data_utils import filter_dataset, load_dataset
 from hec.tools.demo_data import make_demo_dataset
 from ui.charts import show_chart
 from ui.research_pages import model_lab, feature_explorer
+from ui.welcome import welcome
 
 ROOT = Path(__file__).parent
 TEAL, NAVY, CLAY = "#7EE8C5", "#B29AFF", "#FFA88E"
@@ -41,25 +42,7 @@ with st.sidebar:
 motion_header = declare_component("allocation_motion_header", path=str(ROOT / "assets/motion"))
 motion_header(key="research_header", default=None)
 
-with st.container(border=True):
-    st.subheader("Start here · a two-minute tour")
-    st.write("Each observation describes one investment allocation: its previous 20 days of returns and trading activity, plus its actual next-day return. The research task is to predict **positive** versus **zero or negative** returns.")
-    first, second, third = st.columns(3)
-    with first:
-        st.markdown("**01 / Explore the data**")
-        st.caption("Start with Overview below. Compare outcomes and allocation groups. Historical signals shows the 20-day history behind one observation.")
-    with second:
-        st.markdown("**02 / Evaluate the models**")
-        st.caption("Open Model Lab to compare CatBoost and logistic regression with a simple baseline, then explore prediction thresholds and feature importance.")
-    with third:
-        st.markdown("**03 / Check the evidence**")
-        st.caption("Use Data explorer to inspect and download rows. Research & methods explains the original project, validation choices and limitations.")
-    if source == "Demo dataset":
-        st.info("No upload needed to begin. Overview and Historical signals use clearly labeled synthetic demo data. Model Lab uses a separate, fixed experiment on 60,000 real project observations.")
-    else:
-        st.info("Upload matching X_train and y_train files to explore your actual observations. Model Lab continues to show its separate, fixed experiment on 60,000 real project observations.")
-    with st.expander("New to the dataset? A quick glossary"):
-        st.markdown("**Return:** the change in investment value. A positive return is a gain; a negative return is a loss.\n\n**Allocation group:** an anonymized category of investment allocations. The group numbers are identifiers, not rankings.\n\n**Observation:** one row with historical features and a known next-day outcome.\n\n**Basis point (bp):** 0.01 percentage points; 100 bp = 1%.\n\n**Accuracy:** the share of correct direction predictions on held-out observations. Compare it with the baseline, which always predicts the training fold's most common class.")
+welcome(source)
 
 if source == "Upload my data" and (features is None or targets is None):
     st.info("Add both X_train and y_train in the sidebar to open your research workspace.")

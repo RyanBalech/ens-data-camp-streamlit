@@ -58,7 +58,7 @@ with sync_playwright() as p:
     expand = page.get_by_role("button", name="Expand chart", exact=True).first
     expand.wait_for()
     expect(metric(page, "OBSERVATIONS")).to_have_text("360")
-    expect(page.get_by_text("Start here · a two-minute tour", exact=True)).to_be_visible()
+    expect(page.get_by_text("The project, at a glance.", exact=True)).to_be_visible()
     check_visible_figures(page, "overview")
     expand.click()
     dialog = page.get_by_role("dialog")
