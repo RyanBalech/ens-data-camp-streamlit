@@ -15,9 +15,9 @@ function Header() {
         initial={reduced ? false : { opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: reduced ? 0 : 1.2 }} />
-      <motion.div className="eyebrow" {...reveal(0)}>RESEARCH WORKSPACE / 01</motion.div>
-      <motion.h1 {...reveal(0.07)}>Inside the allocation signal.</motion.h1>
-      <motion.p {...reveal(0.14)}>Explore return direction, allocation groups and the historical signals behind the ENS Data Camp project.</motion.p>
+      <motion.div className="eyebrow" {...reveal(0)}>ENS DATA CAMP / RYAN BALECH</motion.div>
+      <motion.h1 {...reveal(0.07)}>Can yesterday's data predict tomorrow's return?</motion.h1>
+      <motion.p {...reveal(0.14)}>Allocation Lab turns my ENS Data Camp / QRT data science project into an interactive research app. Explore 20 days of investment returns and trading activity, then see how well machine learning predicts whether the next day's return is positive.</motion.p>
     </header>
   </MotionConfig>;
 }

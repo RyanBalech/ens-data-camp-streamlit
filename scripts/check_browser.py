@@ -31,6 +31,23 @@ def metric(page, label):
     return page.locator('[data-testid="stMetric"]').filter(has_text=label).locator('[data-testid="stMetricValue"]')
 
 
+def check_visible_figures(page, name):
+    """Catch marks that exist in the DOM but are hidden by zero-area SVG clips."""
+    charts = page.locator('[data-testid="stVegaLiteChart"]:visible')
+    assert charts.count() > 0, name
+    for index in range(charts.count()):
+        chart = charts.nth(index)
+        chart.scroll_into_view_if_needed()
+        expect(chart.locator('svg.marks')).to_be_visible()
+        empty_clips = chart.locator('clipPath rect').evaluate_all(
+            '(elements) => elements.filter(e => +e.getAttribute("width") <= 0 || +e.getAttribute("height") <= 0).map(e => e.outerHTML)'
+        )
+        assert not empty_clips, (name, index, empty_clips)
+        marks = chart.locator('.role-mark path, .role-mark rect, .role-mark text')
+        assert marks.evaluate_all('(elements) => elements.some(e => {const b=e.getBoundingClientRect(); return b.width > 1 && b.height > 1;})'), (name, index, "No rendered data marks")
+        chart.screenshot(path=str(out / f"{name}-{index}.png"))
+
+
 with sync_playwright() as p:
     browser = p.chromium.launch(channel=args.channel)
     page = browser.new_page(viewport={"width": 1440, "height": 1100})
@@ -40,7 +57,9 @@ with sync_playwright() as p:
     page.goto(args.url)
     expand = page.get_by_role("button", name="Expand chart", exact=True).first
     expand.wait_for()
-    expect(metric(page, "OBSERVATIONS")).to_have_text("6")
+    expect(metric(page, "OBSERVATIONS")).to_have_text("360")
+    expect(page.get_by_text("Start here · a two-minute tour", exact=True)).to_be_visible()
+    check_visible_figures(page, "overview")
     expand.click()
     dialog = page.get_by_role("dialog")
     expect(dialog).to_be_visible()
@@ -87,6 +106,7 @@ with sync_playwright() as p:
 
     page.get_by_role("tab", name="Model Lab", exact=True).click()
     expect(page.get_by_text("Evidence, before confidence.", exact=True)).to_be_visible()
+    check_visible_figures(page, "validation")
     page.get_by_role("tab", name="Threshold lab", exact=True).click()
     threshold = page.locator('input[type="range"][aria-label="Positive-return probability threshold"]')
     threshold.focus()
@@ -95,25 +115,31 @@ with sync_playwright() as p:
     threshold.focus()
     threshold.press("Home")
     expect(metric(page, "PREDICTED POSITIVE")).to_have_text("100.0%")
+    check_visible_figures(page, "threshold")
     page.screenshot(path=str(out / "threshold.png"))
     page.get_by_role("tab", name="Feature importance", exact=True).click()
+    check_visible_figures(page, "importance")
     with page.expect_download() as downloaded:
         page.get_by_role("button", name="Download feature importance", exact=True).click()
     downloaded.value.save_as(out / "importance.csv")
     page.get_by_role("tab", name="Model card", exact=True).click()
     expect(page.get_by_text("Evaluation contract", exact=True)).to_be_visible()
     print("Model comparison, thresholds, importance download and model card passed.", flush=True)
+    page.get_by_role("tab", name="Historical signals", exact=True).click()
+    check_visible_figures(page, "demo-history")
     page.get_by_role("tab", name="Data explorer", exact=True).click()
     with page.expect_download() as downloaded:
         page.get_by_role("button", name="Download this preview · CSV", exact=True).click()
     downloaded.value.save_as(out / "preview.csv")
-    assert len((out / "preview.csv").read_text().splitlines()) == 7
+    assert len((out / "preview.csv").read_text().splitlines()) == 361
 
     if args.data_dir:
         page.get_by_text("Upload my data", exact=True).click()
         page.locator('input[type="file"]').nth(0).set_input_files(str(args.data_dir / "X_train_9xQjqvZ.csv"), timeout=120000)
         page.locator('input[type="file"]').nth(1).set_input_files(str(args.data_dir / "y_train_Ppwhaz8.csv"), timeout=120000)
         expect(metric(page, "OBSERVATIONS")).to_have_text("527,073", timeout=120000)
+        page.get_by_role("tab", name="Overview", exact=True).click()
+        check_visible_figures(page, "uploaded-overview")
         page.get_by_role("tab", name="Historical signals", exact=True).click()
         expect(page.get_by_text("One observation. Twenty days of context.", exact=True)).to_be_visible()
         observation = page.get_by_role("spinbutton")
@@ -123,6 +149,7 @@ with sync_playwright() as p:
             page.get_by_role("button", name="Download this observation's features", exact=True).click()
         downloaded.value.save_as(out / "features.csv")
         assert "ewma_ret" in (out / "features.csv").read_text()
+        check_visible_figures(page, "uploaded-history")
         page.screenshot(path=str(out / "feature-explorer.png"), full_page=True)
         print("Full upload and observation feature workflow passed.", flush=True)
 

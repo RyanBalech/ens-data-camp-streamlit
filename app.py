@@ -8,6 +8,7 @@ import streamlit as st
 from streamlit.components.v1 import declare_component
 
 from hec.tools.data_utils import filter_dataset, load_dataset
+from hec.tools.demo_data import make_demo_dataset
 from ui.charts import show_chart
 from ui.research_pages import model_lab, feature_explorer
 
@@ -22,12 +23,6 @@ def read_data(features, targets):
     return load_dataset(features, targets)
 
 
-def chart_style(chart):
-    return (chart.configure(background="transparent").configure_view(strokeWidth=0)
-            .configure_axis(labelColor="#B5BDD1", titleColor="#B5BDD1", gridColor="#2C334A", domain=False)
-            .configure_legend(title=None, labelColor="#B5BDD1"))
-
-
 with st.sidebar:
     st.markdown('<div class="wordmark">AL<span>/</span> Allocation Lab</div>', unsafe_allow_html=True)
     st.caption("ENS DATA CAMP · RYAN BALECH")
@@ -40,18 +35,38 @@ with st.sidebar:
         targets = st.file_uploader("Training targets · y_train", type="csv", key="targets")
         st.caption("Up to 500 MB per file. Files are processed by this running app and are not committed to Git.")
     else:
-        st.caption("Six synthetic observations for a quick walkthrough. These are illustrative, not research results.")
+        st.caption("360 synthetic observations with the full 20-day schema. Illustrative only; not research results.")
     st.divider()
 
 motion_header = declare_component("allocation_motion_header", path=str(ROOT / "assets/motion"))
 motion_header(key="research_header", default=None)
+
+with st.container(border=True):
+    st.subheader("Start here · a two-minute tour")
+    st.write("Each observation describes one investment allocation: its previous 20 days of returns and trading activity, plus its actual next-day return. The research task is to predict **positive** versus **zero or negative** returns.")
+    first, second, third = st.columns(3)
+    with first:
+        st.markdown("**01 / Explore the data**")
+        st.caption("Start with Overview below. Compare outcomes and allocation groups. Historical signals shows the 20-day history behind one observation.")
+    with second:
+        st.markdown("**02 / Evaluate the models**")
+        st.caption("Open Model Lab to compare CatBoost and logistic regression with a simple baseline, then explore prediction thresholds and feature importance.")
+    with third:
+        st.markdown("**03 / Check the evidence**")
+        st.caption("Use Data explorer to inspect and download rows. Research & methods explains the original project, validation choices and limitations.")
+    if source == "Demo dataset":
+        st.info("No upload needed to begin. Overview and Historical signals use clearly labeled synthetic demo data. Model Lab uses a separate, fixed experiment on 60,000 real project observations.")
+    else:
+        st.info("Upload matching X_train and y_train files to explore your actual observations. Model Lab continues to show its separate, fixed experiment on 60,000 real project observations.")
+    with st.expander("New to the dataset? A quick glossary"):
+        st.markdown("**Return:** the change in investment value. A positive return is a gain; a negative return is a loss.\n\n**Allocation group:** an anonymized category of investment allocations. The group numbers are identifiers, not rankings.\n\n**Observation:** one row with historical features and a known next-day outcome.\n\n**Basis point (bp):** 0.01 percentage points; 100 bp = 1%.\n\n**Accuracy:** the share of correct direction predictions on held-out observations. Compare it with the baseline, which always predicts the training fold's most common class.")
 
 if source == "Upload my data" and (features is None or targets is None):
     st.info("Add both X_train and y_train in the sidebar to open your research workspace.")
     st.stop()
 try:
     if source == "Demo dataset":
-        data = read_data(ROOT / "sample_data/X_train_sample.csv", ROOT / "sample_data/y_train_sample.csv")
+        data = make_demo_dataset()
     else:
         data = read_data(features, targets)
 except (ValueError, pd.errors.ParserError, UnicodeError) as error:
@@ -63,7 +78,7 @@ with st.sidebar:
     groups = sorted(data["GROUP"].unique().tolist(), key=str)
     group = st.selectbox("Allocation group", ["All"] + groups, format_func=lambda v: "All groups" if v == "All" else f"Group {v}", key="group")
     label = st.selectbox("Return direction", ["All", 1, 0], format_func=lambda v: {"All": "All directions", 1: "Positive", 0: "Zero or negative"}[v], key="label")
-    st.caption("Filters apply to uploaded-data exploration. Model Lab uses its own fixed validation experiment.")
+    st.caption("Filters change the demo or uploaded-data exploration. Model Lab uses its own fixed validation experiment.")
     st.slider("Chart height", 250, 700, 350, 50, key="chart_height")
     st.divider()
     st.markdown("**Research question**")
@@ -87,10 +102,11 @@ st.caption(f"Viewing {len(selected):,} of {len(data):,} observations · Metrics 
 overview, signals, records, research, methods = st.tabs(["Overview", "Historical signals", "Data explorer", "Model Lab", "Research & methods"])
 
 with overview:
+    st.caption("Explore known outcomes here. These charts describe the selected data; open Model Lab to assess prediction quality.")
     left, right = st.columns([1.6, 1])
     with left, st.container(border=True):
-        st.subheader("The shape of tomorrow's return")
-        st.caption("Observed next-day returns · all selected rows · basis points")
+        st.subheader("How much did returns vary?")
+        st.caption("Each bar counts observations in a return range. Left of zero = losses; right of zero = gains. 100 bp = 1%.")
         bins = st.slider("Histogram bins", 10, 100, 40, 10)
         counts, edges = np.histogram(selected.target * 10000, bins=bins)
         histogram = pd.DataFrame({"start": edges[:-1], "end": edges[1:], "Observations": counts})
@@ -100,21 +116,27 @@ with overview:
         show_chart(plot, "Next-day return distribution", "distribution")
     with right, st.container(border=True):
         st.subheader("Direction balance")
-        st.caption("Actual outcomes in the selected cohort")
+        st.caption("How many observed outcomes were gains versus zero or losses?")
         balance = pd.DataFrame({"Direction": ["Positive", "Zero or negative"], "Observations": [(selected.label == 1).sum(), (selected.label == 0).sum()]})
-        plot = alt.Chart(balance).mark_bar(cornerRadiusEnd=5, size=40).encode(
+        plot = alt.Chart(balance).mark_bar(size=40).encode(
             y=alt.Y("Direction:N", title=None, sort=None), x=alt.X("Observations:Q", title="Observations"),
+            x2=alt.X2(datum=0),
             color=alt.Color("Direction:N", scale=alt.Scale(domain=["Positive", "Zero or negative"], range=[TEAL, CLAY]), legend=None), tooltip=["Direction", "Observations"])
         show_chart(plot, "Direction balance", "balance")
+        st.caption(f"Positive: {int(balance.Observations.iloc[0]):,} · Zero or negative: {int(balance.Observations.iloc[1]):,}")
         st.caption("A balanced target can still be difficult to predict. Class frequency alone is not evidence of predictive skill.")
     with st.container(border=True):
         st.subheader("Where the groups differ")
-        st.caption("Mean observed return by allocation family · descriptive comparison")
+        st.caption("Average next-day return for each allocation group. Above zero = an average gain; below zero = an average loss.")
         grouped = selected.groupby("GROUP").agg(Observations=("target", "size"), Mean=("target", "mean")).reset_index()
         grouped["Mean (bp)"] = grouped.Mean * 10000
-        plot = alt.Chart(grouped).mark_bar(color=NAVY, cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
-            x=alt.X("GROUP:N", title="Allocation group"), y=alt.Y("Mean (bp):Q", title="Mean next-day return (bp)"), tooltip=["GROUP", "Observations", alt.Tooltip("Mean (bp):Q", format=".2f")])
+        plot = alt.Chart(grouped).mark_bar(color=NAVY).encode(
+            x=alt.X("GROUP:N", title="Allocation group", axis=alt.Axis(labelAngle=0)), y=alt.Y("Mean (bp):Q", title="Mean next-day return (bp)"), y2=alt.Y2(datum=0), tooltip=["GROUP", "Observations", alt.Tooltip("Mean (bp):Q", format=".2f")])
         show_chart(plot, "Returns by allocation group", "groups")
+        if len(grouped) == 1:
+            st.caption("One group selected. Choose All groups in the sidebar to compare groups.")
+        st.dataframe(grouped[["GROUP", "Observations", "Mean (bp)"]].rename(columns={"GROUP": "Allocation group"}), hide_index=True, width="stretch")
+        st.caption("Group averages describe this selection and do not establish future performance.")
 
 with signals:
     st.subheader("Read the history behind each observation")
@@ -158,7 +180,7 @@ with methods:
     st.write("The supplied notebook engineers statistical, momentum and liquidity features and trains CatBoost on a GPU. Its stratified random cross-validation may place observations from the same anonymized date in both partitions. The report also describes grouped validation elsewhere; those descriptions are inconsistent, so the app does not claim to reproduce its reported scores.")
     st.write("Anonymized TS values are identifiers, not calendar dates. These plots show associations and observed outcomes; they do not establish out-of-sample predictive performance.")
     st.markdown("#### 04 / Reproduce this workspace")
-    st.write("The repository includes Docker instructions, a frozen dependency environment, import/filter tests, UI smoke tests and GitLab CI. The bundled six-row dataset is synthetic and only demonstrates the interface. Use the original challenge training files to reproduce the full analysis.")
+    st.write("The repository includes Docker instructions, a frozen dependency environment, import/filter tests, UI smoke tests and GitLab CI. The bundled 360-row dataset is generated deterministically, is explicitly synthetic and demonstrates the complete interface. Use the original challenge training files to reproduce the full analysis.")
 
 st.divider()
 st.markdown('<div class="footer">ALLOCATION LAB <span>ENS Data Camp · Individual adaptation by Ryan Balech</span></div>', unsafe_allow_html=True)

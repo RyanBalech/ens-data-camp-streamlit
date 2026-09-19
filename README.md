@@ -15,7 +15,9 @@ docker run --rm -p 8501:8501 --name allocation-lab ens-data-camp
 
 Open http://localhost:8501 on the computer running Docker. If port 8501 is occupied, use `-p 8502:8501` and open http://localhost:8502. Stop with `docker stop allocation-lab`.
 
-The **Demo dataset** opens immediately with six explicitly synthetic observations. It demonstrates the controls and charts; it is not a sample extracted from QRT data and cannot reproduce research results. No external data download is needed for the demo.
+The **Demo dataset** opens immediately with 360 deterministic, explicitly synthetic observations and the complete 20-day feature schema. It makes every exploration flow available without a large upload; it is not a sample extracted from QRT data and cannot reproduce research results. No external data download is needed for the demo.
+
+The opening page explains the research question and unit of observation, then offers a two-minute tour and a glossary. Start with Overview to understand observed returns, move to Historical signals to inspect individual histories, and use Model Lab for the separate real-data validation experiment. Group averages and direction counts include readable values alongside their figures.
 
 ## Explore the original data
 
@@ -82,6 +84,7 @@ run `python -m playwright install chromium`, then run
 527,073-row upload and observation explorer. The script exercises explicit chart
 expansion, native fullscreen, resizing, zoom/pan/reset, PNG/JSON/CSV exports,
 threshold endpoints and responsive widths, saving evidence under ignored `artifacts/e2e/`.
+It also checks that charts contain rendered marks and no zero-area SVG clipping regions, guarding against invisible bars even when chart data and axes are present.
 
 GitLab's unit-test job uses the same pinned Python base and locked dependencies as Docker. It compiles the app, tests import/filter and research calculations, checks evaluation-artifact consistency and Streamlit execution, and publishes JUnit and coverage reports. The utility coverage gate is 95%. A separate Playwright browser job verifies figure controls, downloads and Model Lab interactions using the bundled demo and real aggregate evaluation evidence; the full private training files are only exercised locally. A third job checks the reproducibility of the Framer Motion frontend build.
 
@@ -101,7 +104,8 @@ The compiled JavaScript and third-party license notices are committed under `ass
 - `ui/`: chart expansion/export and research pages.
 - `scripts/evaluate.py`, `requirements-model.lock`: separately reproducible offline CPU experiment.
 - `results/evaluation.json`: verified aggregate validation evidence and input hashes.
-- `sample_data/`: six-row synthetic demonstration pair.
+- `hec/tools/demo_data.py`: deterministic full-schema synthetic demonstration data.
+- `sample_data/`: minimal CSV fixtures retained for import examples.
 - `ensdata_original.ipynb`: historical project reference; has original local paths and GPU assumptions, and is not required to run the app.
 - `Dockerfile`, `requirements.lock`, `.gitlab-ci.yml`: reproducible packaging and automated verification.
 

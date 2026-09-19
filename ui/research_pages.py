@@ -31,8 +31,9 @@ def model_lab():
         c.metric("ACCURACY DIFFERENCE", f"{(score - baseline) * 100:+.2f} pp")
         st.caption("The baseline chooses the majority class using each training fold only. Both methods are evaluated on exactly the same held-out rows.")
         comparison = pd.DataFrame([{"Model": name, "Accuracy": value["accuracy"]} for name, value in report["scores"].items()])
-        chart = alt.Chart(comparison).mark_bar(color=VIOLET, cornerRadiusEnd=4).encode(
+        chart = alt.Chart(comparison).mark_bar(color=VIOLET).encode(
             y=alt.Y("Model:N", sort="-x", title=None), x=alt.X("Accuracy:Q", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format="%")),
+            x2=alt.X2(datum=0),
             tooltip=["Model", alt.Tooltip("Accuracy:Q", format=".2%")])
         show_chart(chart, "Out-of-fold model comparison", "comparison")
         folds = pd.DataFrame([{"Fold": str(f["fold"]), "Model": name, "Accuracy": metrics["accuracy"]}
@@ -77,8 +78,9 @@ def model_lab():
         st.subheader("What the model uses")
         st.caption(report["importance_method"] + ". Importance describes model behavior, not causality.")
         table = pd.DataFrame({"Feature": list(report["importance"]), "Importance": list(report["importance"].values())}).sort_values("Importance", ascending=False)
-        show_chart(alt.Chart(table).mark_bar(color=MINT, cornerRadiusEnd=4).encode(
+        show_chart(alt.Chart(table).mark_bar(color=MINT).encode(
             y=alt.Y("Feature:N", sort="-x", title=None), x=alt.X("Importance:Q", title="Relative importance (%)"),
+            x2=alt.X2(datum=0),
             tooltip=["Feature", alt.Tooltip("Importance:Q", format=".2f")]), "CatBoost feature importance", "importance", height=420)
         feature = st.selectbox("Explain a feature", table.Feature.tolist())
         st.info(DESCRIPTIONS[feature])
@@ -103,7 +105,7 @@ def feature_explorer(selected):
     st.subheader("One observation. Twenty days of context.")
     required = set(RETURNS + VOLUMES + ["MEDIAN_DAILY_TURNOVER"])
     if not required.issubset(selected.columns):
-        st.info("Upload the full training pair to inspect all 20 return and volume lags. The six-row demo contains only a few illustrative columns.")
+        st.info("This file is missing some of the 20 return or volume lags, or turnover. Use Demo dataset to try this explorer, or upload the full training feature file.")
         return
     position = st.number_input("Observation position in filtered data", 1, len(selected), 1, key="observation")
     raw = selected.iloc[[int(position) - 1]]
