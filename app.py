@@ -13,10 +13,11 @@ from ui.charts import show_chart
 from ui.research_pages import model_lab, feature_explorer
 from ui.welcome import welcome
 from ui.methods import research_methods
+from ui.brand import MARK, sidebar_brand
 
 ROOT = Path(__file__).parent
 TEAL, NAVY, CLAY = "#7EE8C5", "#B29AFF", "#FFA88E"
-st.set_page_config(page_title="Allocation Lab | ENS Data Camp", layout="wide")
+st.set_page_config(page_title="Allocation Lab | ENS Data Camp", page_icon=str(MARK), layout="wide")
 st.markdown(f"<style>{(ROOT / 'assets/style.css').read_text()}</style>", unsafe_allow_html=True)
 
 
@@ -26,8 +27,7 @@ def read_data(features, targets):
 
 
 with st.sidebar:
-    st.markdown('<div class="wordmark">AL<span>/</span> Allocation Lab</div>', unsafe_allow_html=True)
-    st.caption("ENS DATA CAMP · RYAN BALECH")
+    sidebar_brand()
     st.divider()
     st.markdown("### Your workspace")
     source = st.radio("Data source", ["Demo dataset", "Upload my data"], key="source")

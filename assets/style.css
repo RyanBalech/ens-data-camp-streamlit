@@ -7,8 +7,14 @@ h2, h3 { color: var(--ink); letter-spacing: -.025em; }
 h3 { font-size: 1.12rem !important; }
 .eyebrow { display: inline-block; color: #d7cbff; background: rgba(155,122,255,.12); border: 1px solid rgba(175,149,255,.25); border-radius: 30px; padding: .45rem .8rem; font-size: .66rem; letter-spacing: .14em; font-weight: 700; }
 .intro { color: var(--muted); max-width: 690px; line-height: 1.7; margin-bottom: 1.2rem; }
-.wordmark { font-size: 1.3rem; font-weight: 750; color: var(--ink); letter-spacing: -.045em; padding-top: .75rem; }
-.wordmark span { color: #bbaaff; margin-right: .5rem; }
+.brand-lockup { display: flex; align-items: center; gap: .75rem; padding-top: .6rem; }
+.brand-mark { display: block; flex-shrink: 0; width: 46px; height: 46px; filter: drop-shadow(0 6px 12px rgba(0,0,0,.2)); }
+.brand-type { display: flex; flex-direction: column; min-width: 0; gap: .35rem; }
+.brand-name { font-size: 1.2rem; color: #f0edff; font-weight: 600; letter-spacing: -.045em; line-height: 1.15; white-space: nowrap; }
+.brand-name span { color: #b5bdd1; font-weight: 400; }
+.brand-project { font-size: .59rem; color: #aaaac4; font-weight: 550; letter-spacing: .18em; }
+.brand-credit { margin-top: .9rem; font-size: .66rem; color: #aaaec0; line-height: 1.6; }
+.brand-credit strong { font-weight: 500; color: #d2d5e3; }
 [data-testid="stSidebar"] { background: rgba(17,21,35,.82); backdrop-filter: blur(28px); border-right: 1px solid var(--line); }
 [data-testid="stSidebar"] hr { border-color: var(--line); }
 [data-testid="stCaptionContainer"] { color: var(--muted); }
@@ -29,7 +35,15 @@ h3 { font-size: 1.12rem !important; }
 [data-baseweb="select"] > div { border-radius: 14px; border-color: var(--line); }
 [data-testid="stFileUploaderDropzone"] { border: 1px dashed rgba(187,170,255,.4); border-radius: 16px; background: rgba(169,149,255,.05); }
 button { transition: background-color 180ms,border-color 180ms; }
-button:focus-visible, input:focus-visible { outline: 3px solid #bbaaff !important; outline-offset: 3px; }
+/* Quiet pointer focus, with a distinct mint indicator for keyboard navigation. */
+:is(button, a, input, [role="tab"], summary):focus:not(:focus-visible) { outline: none !important; box-shadow: none !important; }
+:is(button, a, input, [role="tab"], summary):focus-visible { outline: 2px solid #7ee8c5 !important; outline-offset: 3px; box-shadow: none !important; }
+[data-testid="stTab"] .react-aria-SelectionIndicator { display: none !important; }
+[data-testid="stSelectbox"] [role="group"], [data-testid="stMultiSelect"] [role="group"] { border-color: rgba(221,228,255,.17) !important; border-radius: 14px; }
+[data-testid="stSelectbox"] [role="group"][data-focus-within="true"], [data-testid="stMultiSelect"] [role="group"][data-focus-within="true"] { border-color: rgba(221,228,255,.4) !important; box-shadow: none !important; }
+:is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) input:is(:focus, :focus-visible) { outline: none !important; box-shadow: none !important; }
+:is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"][data-focus-visible="true"] { outline: 2px solid #7ee8c5 !important; outline-offset: 3px; }
+button:focus:not(:focus-visible) { border-color: rgba(221,228,255,.3) !important; }
 [data-testid="stDownloadButton"] button { border-radius: 30px; background: #eeebff; color: #151124; border: 0; padding: .65rem 1.3rem; }
 .footer { color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: .7rem; font-size: .7rem; letter-spacing: .05em; }
 [role="tablist"] { gap: .4rem; padding: .4rem; background: rgba(255,255,255,.035); border: 1px solid var(--line); border-radius: 30px; margin: .7rem 0 1.3rem; }
