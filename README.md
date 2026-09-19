@@ -111,6 +111,8 @@ The compiled JavaScript and third-party license notices are committed under `ass
 
 ## Submission
 
+See [assignment evidence](ASSESSMENT.md) for the requirement-to-file mapping and reviewer-access checks.
+
 Submit this repository URL. DockerHub is optional. Ensure the assessor can access this private repository; a localhost URL is only usable on the machine running the container.
 
 The assignment asks for a prior/personal data science project adapted to Streamlit, containerized, documented, with data import/filter tests and CI. This repository maps those requirements to the files above. It makes no claim of instructor approval or reproduced CatBoost performance.

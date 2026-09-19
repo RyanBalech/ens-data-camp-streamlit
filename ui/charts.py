@@ -24,4 +24,4 @@ def show_chart(chart, title, key, height=None):
     if expand.button("Expand chart", key=f"expand_{key}", width="stretch"):
         expanded_chart(spec, title)
     export.download_button("Export figure · JSON", json.dumps(spec), f"{key}.vl.json",
-                           "application/json", key=f"export_{key}", width="stretch")
+                           "application/json", key=f"export_{key}", width="stretch", on_click="ignore")

@@ -12,6 +12,7 @@ from hec.tools.demo_data import make_demo_dataset
 from ui.charts import show_chart
 from ui.research_pages import model_lab, feature_explorer
 from ui.welcome import welcome
+from ui.methods import research_methods
 
 ROOT = Path(__file__).parent
 TEAL, NAVY, CLAY = "#7EE8C5", "#B29AFF", "#FFA88E"
@@ -142,7 +143,7 @@ with records:
     st.subheader("Inspect the evidence")
     st.caption("Preview limited to 500 rows to keep the browser responsive. The metrics use every selected row.")
     st.dataframe(selected.head(500), hide_index=True, width="stretch")
-    st.download_button("Download this preview · CSV", selected.head(500).to_csv(index=False), "allocation-preview.csv", "text/csv")
+    st.download_button("Download this preview · CSV", selected.head(500).to_csv(index=False), "allocation-preview.csv", "text/csv", on_click="ignore")
     missing = selected.isna().mean().sort_values(ascending=False)
     missing = missing[missing > 0].rename_axis("Feature").reset_index(name="Missing share")
     st.markdown("#### Data quality")
@@ -153,17 +154,7 @@ with records:
     st.caption("Targets and identifiers are validated on import. Missing historical features remain visible; this explorer does not impute them.")
 
 with methods:
-    st.subheader("From a research project to an interactive app")
-    st.write("This is Ryan Balech's individual Streamlit adaptation of the ENS Data Camp / QRT asset-allocation project. The original research was conducted with Omar Karim, Hitaishi Dhoowooah, Gabriel Dreik and Korouhanba Khuman Laikhuram.")
-    st.markdown("#### 01 / The question")
-    st.write("The original task predicts whether the next-day return is positive using 20 return lags, 20 signed-volume lags, turnover and allocation group. A label of 1 means target > 0; 0 includes zero and negative returns.")
-    st.markdown("#### 02 / This application")
-    st.write("Upload matching training feature and target CSVs to explore distributions, group differences, historical signals and missingness. Model Lab displays a separately reproduced offline CatBoost experiment with held-out predictions, a threshold explorer and feature importance. Training never runs inside the page. X_test and submission.csv are not inputs to this labeled-data explorer.")
-    st.markdown("#### 03 / Original model & limitations")
-    st.write("The supplied notebook engineers statistical, momentum and liquidity features and trains CatBoost on a GPU. Its stratified random cross-validation may place observations from the same anonymized date in both partitions. The report also describes grouped validation elsewhere; those descriptions are inconsistent, so the app does not claim to reproduce its reported scores.")
-    st.write("Anonymized TS values are identifiers, not calendar dates. These plots show associations and observed outcomes; they do not establish out-of-sample predictive performance.")
-    st.markdown("#### 04 / Reproduce this workspace")
-    st.write("The repository includes Docker instructions, a frozen dependency environment, import/filter tests, UI smoke tests and GitLab CI. The bundled 360-row dataset is generated deterministically, is explicitly synthetic and demonstrates the complete interface. Use the original challenge training files to reproduce the full analysis.")
+    research_methods()
 
 st.divider()
 st.markdown('<div class="footer">ALLOCATION LAB <span>ENS Data Camp · Individual adaptation by Ryan Balech</span></div>', unsafe_allow_html=True)

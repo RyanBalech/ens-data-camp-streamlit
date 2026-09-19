@@ -34,7 +34,10 @@ def metric(page, label):
 def check_visible_figures(page, name):
     """Catch marks that exist in the DOM but are hidden by zero-area SVG clips."""
     charts = page.locator('[data-testid="stVegaLiteChart"]:visible')
-    assert charts.count() > 0, name
+    expected_count = {"overview": 3, "validation": 2, "threshold": 2, "importance": 1,
+                      "demo-history": 3, "uploaded-overview": 3, "uploaded-history": 3}[name]
+    # Tabs mount charts asynchronously. Wait for the complete panel before inspecting it.
+    expect(charts).to_have_count(expected_count, timeout=30000)
     for index in range(charts.count()):
         chart = charts.nth(index)
         chart.scroll_into_view_if_needed()
@@ -153,6 +156,11 @@ with sync_playwright() as p:
         page.screenshot(path=str(out / "feature-explorer.png"), full_page=True)
         print("Full upload and observation feature workflow passed.", flush=True)
 
+    page.get_by_role("tab", name="Research & methods", exact=True).click()
+    expect(page.get_by_text("Behind the experiment.", exact=True)).to_be_visible()
+    page.locator('.methods-page').screenshot(path=str(out / "research-methods.png"))
+    page.get_by_text("Validation details & original research", exact=True).click()
+    expect(page.get_by_text("The original notebook engineers", exact=False)).to_be_visible()
     for width in [375, 768, 1024]:
         page.set_viewport_size({"width": width, "height": 1000})
         page.wait_for_timeout(300)

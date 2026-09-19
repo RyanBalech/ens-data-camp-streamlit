@@ -46,7 +46,7 @@ def model_lab():
         with st.expander("Original report: historical results, not reproduced scores"):
             st.write("The original report gives CatBoost ~53.03% CV accuracy and 52.03% public leaderboard accuracy. It also lists Logistic Regression 50.95%, LightGBM 51.37% and XGBoost 50.70% in its comparison. These came from a different workflow and must not be ranked against this experiment.")
             st.warning("The supplied report describes both grouped and stratified validation. The notebook uses stratified random folds. This discrepancy is documented, not silently treated as a verified protocol.")
-        st.download_button("Download evaluation evidence", path.read_bytes(), "evaluation.json", "application/json")
+        st.download_button("Download evaluation evidence", path.read_bytes(), "evaluation.json", "application/json", on_click="ignore")
     with thresholds:
         st.subheader("Change the decision, see the trade-off.")
         threshold = st.slider("Positive-return probability threshold", 0, 100, 50, 1, format="%d%%", key="threshold")
@@ -84,7 +84,7 @@ def model_lab():
             tooltip=["Feature", alt.Tooltip("Importance:Q", format=".2f")]), "CatBoost feature importance", "importance", height=420)
         feature = st.selectbox("Explain a feature", table.Feature.tolist())
         st.info(DESCRIPTIONS[feature])
-        st.download_button("Download feature importance", table.to_csv(index=False), "feature-importance.csv", "text/csv")
+        st.download_button("Download feature importance", table.to_csv(index=False), "feature-importance.csv", "text/csv", on_click="ignore")
     with card:
         st.markdown("#### Purpose")
         st.write("Educational classification of next-day allocation return direction. This bounded CPU experiment is a reproducible extension of the original project, not the original final GPU model.")
@@ -122,4 +122,4 @@ def feature_explorer(selected):
                           "Definition": [DESCRIPTIONS[name] for name in result.index]})
     st.dataframe(table, hide_index=True, width="stretch")
     st.caption("Historical plots show raw missing values as gaps. Feature calculations replace missing return/volume entries with zero, as documented. No target value is used to construct features.")
-    st.download_button("Download this observation's features", table.to_csv(index=False), "observation-features.csv", "text/csv")
+    st.download_button("Download this observation's features", table.to_csv(index=False), "observation-features.csv", "text/csv", on_click="ignore")
