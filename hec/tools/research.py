@@ -52,7 +52,7 @@ def engineer_features(data):
 
 def classification_metrics(y, probability, threshold=0.5):
     y, probability = np.asarray(y), np.asarray(probability, dtype=float)
-    if len(y) == 0 or y.shape != probability.shape or not np.isin(y, [0, 1]).all():
+    if y.ndim != 1 or probability.ndim != 1 or len(y) == 0 or y.shape != probability.shape or not np.isin(y, [0, 1]).all():
         raise ValueError("Non-empty aligned binary labels and probabilities are required.")
     if not np.isfinite(probability).all() or ((probability < 0) | (probability > 1)).any() or not 0 <= threshold <= 1:
         raise ValueError("Probabilities and threshold must be between zero and one.")

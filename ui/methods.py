@@ -24,7 +24,7 @@ def research_methods():
 <div class="methods-fact"><b>Fixed model evaluation</b><p>Model Lab compares CatBoost, logistic regression and a baseline on 60,000 real observations, using three disjoint date folds. Training runs offline.</p></div></article>
 <article class="methods-panel"><span class="methods-label">REPRODUCIBILITY</span><h3>Built to run again.</h3>
 <div class="methods-fact"><b>Packaged environment</b><p>Docker, a pinned Python image and locked dependencies keep the app environment reproducible.</p></div>
-<div class="methods-fact"><b>Tested data handling</b><p>Automated import, filtering and research checks run in GitLab CI alongside browser and frontend-build checks.</p></div></article>
+<div class="methods-fact"><b>Tested data handling</b><p>Automated import, filtering and research checks run in CI alongside frontend-build checks.</p></div></article>
 </div>
 <aside class="methods-limits"><span class="methods-label">READ THE RESULTS WITH CONTEXT</span><h3>Evidence has boundaries.</h3>
 <p>Date-grouped validation reduces same-date leakage, but anonymized dates prevent a chronological backtest. Small accuracy differences do not establish profitability or statistical significance.</p>
@@ -39,4 +39,4 @@ def research_methods():
         st.write("Use matching X_train and y_train CSVs. X_test and submission.csv are not inputs to this labeled-data explorer. The 360-row demo is generated from a fixed seed and is explicitly synthetic. Reproducing the full analysis requires the original challenge training files.")
         st.write("The repository README explains installation, data access, tests and Docker. The results README documents the evaluation command, input hashes, fixed seed and separate model dependency lock.")
         st.code("docker build -t ens-data-camp .\ndocker run --rm -p 8501:8501 ens-data-camp\ndocker run --rm ens-data-camp python -m pytest --cov=hec", language="bash")
-        st.link_button("Open the repository & setup guide", "https://gitlab.code.hfactory.io/ryan.balech/ens-data-camp-streamlit")
+        st.link_button("Open the repository & setup guide", "https://github.com/RyanBalech/ens-data-camp-streamlit")
