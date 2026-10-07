@@ -2,7 +2,7 @@ FROM python:3.10-slim@sha256:fd76ade0c607f27677bc04be3c60749f400eedc941d9e72967e
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 WORKDIR /app
 COPY requirements.txt requirements.lock ./
-RUN pip install --no-cache-dir -r requirements.txt && useradd --create-home --uid 10001 appuser
+RUN pip install --no-cache-dir -r requirements.txt && useradd --create-home --uid 10001 appuser && chown appuser:appuser /app
 COPY --chown=appuser:appuser . .
 USER appuser
 EXPOSE 8501
